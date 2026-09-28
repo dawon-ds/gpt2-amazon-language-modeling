@@ -1,0 +1,11 @@
+model_name: gpt2
+max_length: 512
+batch_size: 4
+learning_rate: 2e-5
+epochs: 15
+early_stop: 3
+min_delta: 0.001
+weight_decay: 0.01
+warmup_steps: 100
+output_dir: outputs/setting2
+seed: 42
