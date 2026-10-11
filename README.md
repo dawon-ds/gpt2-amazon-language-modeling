@@ -10,19 +10,7 @@ The task is causal language modeling: predicting the next token in review text. 
 
 **Technologies:** Python, PyTorch, Hugging Face Transformers, GPT-2, Matplotlib.
 
-## Experiment Settings & Reported Results
-
-| Setting | Learning Rate | Maximum Epochs | Max Length | Training Time | Reported PPL |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| #1 | 3e-5 | 10 | 256 | 72.35 min | 3.1366 |
-| #2 | 2e-5 | 15 | 512 | 133.61 min | **1.8683** |
-| #3 | 5e-5 | 8 | 128 | **34.64 min** | 6.7798 |
-
-Batch size is **4** across configurations. The assignment settings specify **100 warmup steps**, although the current training loop does not implement a warmup scheduler.
-
-The PPL and training-time values are transcribed from the submitted assignment evaluation sheet; they have not been reproduced in this documentation update.
-
-## Implementation
+## Approach
 
 - Reads UTF-8 review text with one non-empty review per line.
 - Uses the GPT-2 tokenizer with the EOS token as the padding token.
@@ -37,13 +25,23 @@ For datasets with at least 500 reviews, the training function assigns **400 revi
 
 The third partition is currently discarded by the training function. After restoring the best checkpoint, `main.py` evaluates the **full dataset**, including training and validation examples. Its final printed PPL therefore is not a held-out test metric.
 
-## Findings
+## Results
+
+| Setting | Learning Rate | Maximum Epochs | Max Length | Training Time | Reported PPL |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| #1 | 3e-5 | 10 | 256 | 72.35 min | 3.1366 |
+| #2 | 2e-5 | 15 | 512 | 133.61 min | **1.8683** |
+| #3 | 5e-5 | 8 | 128 | **34.64 min** | 6.7798 |
+
+Batch size is **4** across configurations. The assignment settings specify **100 warmup steps**, although the current training loop does not implement a warmup scheduler.
+
+### Interpretation
 
 Setting #2 has the lowest reported PPL and the longest training time, while Setting #3 is fastest and has the highest reported PPL. This comparison illustrates the observed tradeoff across the submitted configurations.
 
 Learning rate, maximum epochs, and sequence length change together, so the experiment does not isolate the effect of any single hyperparameter. Early stopping can also make the actual epoch count lower than the configured maximum.
 
-## Project Structure
+## Repository Structure
 
 ```text
 .
@@ -60,7 +58,7 @@ Learning rate, maximum epochs, and sequence length change together, so the exper
 └── README.md
 ```
 
-## Run
+## Usage
 
 Install dependencies from the repository root:
 
@@ -81,7 +79,7 @@ For Setting #2, outputs are written to `outputs/setting2/`:
 - `best_model.pt` — checkpoint selected by validation loss
 - `training_plot.png` — training loss and validation PPL
 
-## Evaluation Limitations
+## Limitations
 
 - Padding positions remain in the labels rather than being masked with `-100`. Consequently, the loss includes padded EOS tokens, and different sequence lengths can change how much padding contributes.
 - Final evaluation uses the full dataset, rather than the reserved partition.
@@ -89,7 +87,7 @@ For Setting #2, outputs are written to `outputs/setting2/`:
 - Warmup is configured but not applied in the training loop.
 - Very small datasets can produce an empty training or validation split.
 
-These details limit interpretation of the reported PPL. A stronger evaluation would mask padding labels, use a held-out test partition, aggregate loss over valid target tokens, and document the corpus and experimental environment. Any corrected rerun should be reported separately from the historical assignment results.
+These details limit interpretation of the reported PPL. A stronger evaluation would mask padding labels, use a held-out test partition, aggregate loss over valid target tokens, and document the corpus and experimental environment.
 
 ## Review
 
