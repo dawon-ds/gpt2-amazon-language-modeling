@@ -27,7 +27,7 @@ The third partition is currently discarded by the training function. After resto
 
 ## Results
 
-| Setting | Learning Rate | Maximum Epochs | Max Length | Training Time | Reported PPL |
+| Setting | Learning Rate | Maximum Epochs | Max Length | Training Time | Reported full-data PPL |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | #1 | 3e-5 | 10 | 256 | 72.35 min | 3.1366 |
 | #2 | 2e-5 | 15 | 512 | 133.61 min | **1.8683** |
@@ -36,6 +36,8 @@ The third partition is currently discarded by the training function. After resto
 Batch size is **4** across configurations. The assignment settings specify **100 warmup steps**, although the current training loop does not implement a warmup scheduler.
 
 ### Interpretation
+
+**Evaluation caveat:** the displayed PPL values come from evaluation on the full dataset, including training and validation examples; they are **not held-out test PPL**.
 
 Setting #2 has the lowest reported PPL and the longest training time, while Setting #3 is fastest and has the highest reported PPL. This comparison illustrates the observed tradeoff across the submitted configurations.
 
