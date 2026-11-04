@@ -92,3 +92,10 @@ The updated evaluation improves metric validity, but a controlled comparison sti
 ## Review
 
 This project provided practice with generative language modeling, experiment configuration, validation monitoring, and checkpoint selection. It also highlights why token masking and evaluation partitions matter when comparing perplexity across configurations.
+
+## Data and Third-party Resources
+
+- **Dataset:** the assignment's Amazon review corpus is not bundled; original provider access and redistribution terms apply.
+- **Model:** pretrained GPT-2 is downloaded from its publisher. Displayed PPL values are historical assignment results, not scores produced by the corrected held-out evaluator.
+
+Dependency lists are in `requirements.txt`; unless versions are explicitly pinned there, they do not reproduce an exact historical software environment. No redistribution permission for third-party inputs is implied by this repository.
