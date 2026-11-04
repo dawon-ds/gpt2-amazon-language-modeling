@@ -14,7 +14,7 @@ The task is causal language modeling: predicting the next token in review text. 
 
 - Reads UTF-8 review text with one non-empty review per line.
 - Uses the GPT-2 tokenizer with the EOS token as the padding token.
-- Fine-tunes `GPT2LMHeadModel` with input token IDs as labels.
+- Fine-tunes `GPT2LMHeadModel` with next-token labels, masking padding positions with `-100`.
 - Uses AdamW, validation-loss checkpoint selection, and early stopping.
 - Saves model weights and a training-loss/validation-PPL plot.
 - Separates dataset preparation, training, evaluation, and experiment settings.
@@ -23,7 +23,7 @@ The task is causal language modeling: predicting the next token in review text. 
 
 For datasets with at least 500 reviews, the training function assigns **400 reviews to training**, **50 to validation**, and the remainder to a third partition. Smaller datasets use approximately 80% training and 10% validation, with the remainder reserved. Split randomness is controlled by the configuration seed.
 
-The third partition is currently discarded by the training function. After restoring the best checkpoint, `main.py` evaluates the **full dataset**, including training and validation examples. Its final printed PPL therefore is not a held-out test metric.
+The updated training function returns the reserved **test partition**. After restoring the best validation checkpoint, `main.py` evaluates only that held-out partition with token-weighted cross-entropy and reports test PPL. At least 10 non-empty reviews are required.
 
 ## Results
 
@@ -37,7 +37,7 @@ Batch size is **4** across configurations. The assignment settings specify **100
 
 ### Interpretation
 
-**Evaluation caveat:** the displayed PPL values come from evaluation on the full dataset, including training and validation examples; they are **not held-out test PPL**.
+**Evaluation caveat:** the table contains historical, full-dataset PPL values from the original assignment; they are **not held-out test PPL** and cannot be directly compared with results from the corrected pipeline.
 
 Setting #2 has the lowest reported PPL and the longest training time, while Setting #3 is fastest and has the highest reported PPL. This comparison illustrates the observed tradeoff across the submitted configurations.
 
@@ -83,13 +83,11 @@ For Setting #2, outputs are written to `outputs/setting2/`:
 
 ## Limitations
 
-- Padding positions remain in the labels rather than being masked with `-100`. Consequently, the loss includes padded EOS tokens, and different sequence lengths can change how much padding contributes.
-- Final evaluation uses the full dataset, rather than the reserved partition.
-- Evaluation averages batch losses equally instead of aggregating negative log-likelihood by valid target-token count.
+- The corrected code masks padding labels, evaluates the held-out test partition, and weights evaluation loss by valid target-token count. The historical results above were obtained before these changes and have not been reproduced.
 - Warmup is configured but not applied in the training loop.
-- Very small datasets can produce an empty training or validation split.
+- Datasets with fewer than 10 reviews are rejected. Very short individual reviews may not contain enough next-token targets for meaningful perplexity.
 
-These details limit interpretation of the reported PPL. A stronger evaluation would mask padding labels, use a held-out test partition, aggregate loss over valid target tokens, and document the corpus and experimental environment.
+The updated evaluation improves metric validity, but a controlled comparison still requires documenting the corpus, random seeds, software environment, and newly reproduced scores.
 
 ## Review
 
