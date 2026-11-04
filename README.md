@@ -2,7 +2,6 @@
 
 A language modeling project fine-tuning **GPT-2** on Amazon review text and comparing training configurations using **Perplexity (PPL)** and training time.
 
-[Portfolio](https://incredible-march-0ef.notion.site/GPT-2-Language-Modeling-on-Amazon-Reviews-3e968564df5a815bbd9ff17299b214cd)
 
 ## Project Overview
 
