@@ -27,8 +27,11 @@ class AmazonReviewDataset(Dataset):
         input_ids = encoded["input_ids"].squeeze(0)
         attention_mask = encoded["attention_mask"].squeeze(0)
 
+        labels = input_ids.clone()
+        labels[attention_mask == 0] = -100
+
         return {
             "input_ids": input_ids,
             "attention_mask": attention_mask,
-            "labels": input_ids.clone(),
+            "labels": labels,
         }
