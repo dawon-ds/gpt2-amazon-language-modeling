@@ -1,4 +1,3 @@
-import math
 import os
 
 import matplotlib.pyplot as plt
@@ -7,12 +6,14 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
+from src.evaluate import evaluate
+
 
 def train_model(model, dataset, config, device):
     """Train GPT-2 and save the checkpoint with the best validation loss."""
     total = len(dataset)
-    if total == 0:
-        raise ValueError("The dataset is empty.")
+    if total < 10:
+        raise ValueError("At least 10 reviews are required for train/validation/test splits.")
 
     if total >= 500:
         train_size, validation_size, test_size = 400, 50, total - 450
@@ -22,7 +23,7 @@ def train_model(model, dataset, config, device):
         test_size = total - train_size - validation_size
 
     generator = torch.Generator().manual_seed(config["seed"])
-    train_data, validation_data, _ = random_split(
+    train_data, validation_data, test_data = random_split(
         dataset,
         [train_size, validation_size, test_size],
         generator=generator,
@@ -33,11 +34,6 @@ def train_model(model, dataset, config, device):
         batch_size=config["batch_size"],
         shuffle=True,
     )
-    validation_loader = DataLoader(
-        validation_data,
-        batch_size=config["batch_size"],
-    )
-
     optimizer = AdamW(
         model.parameters(),
         lr=float(config["learning_rate"]),
@@ -66,18 +62,11 @@ def train_model(model, dataset, config, device):
 
         train_loss = total_train_loss / len(train_loader)
 
-        model.eval()
-        total_validation_loss = 0.0
-        with torch.no_grad():
-            for batch in validation_loader:
-                inputs = {
-                    key: value.to(device)
-                    for key, value in batch.items()
-                }
-                total_validation_loss += model(**inputs).loss.item()
-
-        validation_loss = total_validation_loss / len(validation_loader)
-        validation_ppl = math.exp(validation_loss)
+        validation_metrics = evaluate(
+            model, validation_data, config["batch_size"], device
+        )
+        validation_loss = validation_metrics["loss"]
+        validation_ppl = validation_metrics["perplexity"]
         train_losses.append(train_loss)
         validation_ppls.append(validation_ppl)
 
@@ -100,7 +89,7 @@ def train_model(model, dataset, config, device):
         validation_ppls,
         config["output_dir"],
     )
-    return checkpoint_path
+    return checkpoint_path, test_data
 
 
 def save_training_plot(train_losses, validation_ppls, output_dir):
