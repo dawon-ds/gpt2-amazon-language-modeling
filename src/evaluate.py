@@ -5,17 +5,27 @@ from torch.utils.data import DataLoader
 
 
 def evaluate(model, dataset, batch_size, device):
-    """Evaluate a causal language model and return loss and perplexity."""
+    """Return token-weighted causal LM loss and perplexity on the given split."""
+    if len(dataset) == 0:
+        raise ValueError("Evaluation dataset must not be empty.")
     loader = DataLoader(dataset, batch_size=batch_size)
     model.eval()
-    total_loss = 0.0
+    loss_sum = 0.0
+    token_count = 0
 
     with torch.no_grad():
         for batch in loader:
             inputs = {key: value.to(device) for key, value in batch.items()}
-            total_loss += model(**inputs).loss.item()
+            valid_targets = (inputs["labels"][:, 1:] != -100).sum().item()
+            if valid_targets == 0:
+                continue
+            loss = model(**inputs).loss
+            loss_sum += loss.item() * valid_targets
+            token_count += valid_targets
 
-    average_loss = total_loss / len(loader)
+    if token_count == 0:
+        raise ValueError("No valid next-token targets for evaluation.")
+    average_loss = loss_sum / token_count
     return {
         "loss": average_loss,
         "perplexity": math.exp(average_loss),
