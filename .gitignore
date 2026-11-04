@@ -7,3 +7,5 @@ outputs/
 *.pt
 *.pth
 .DS_Store
+.env.*
+!.env.example
