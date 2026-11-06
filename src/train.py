@@ -15,8 +15,7 @@ def train_model(model, dataset, config, device):
     if total < 10:
         raise ValueError("At least 10 reviews are required for training and validation.")
 
-    # Preserve the original training/validation sample counts (400/50 when
-    # available). The remaining examples are not a held-out test partition.
+    # Sample training and validation examples using the configured seed.
     if total >= 500:
         train_size, validation_size = 400, 50
     else:
