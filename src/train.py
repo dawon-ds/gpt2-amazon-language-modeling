@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 import torch
 from torch.optim import AdamW
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
 
 from src.evaluate import evaluate
@@ -13,20 +13,21 @@ def train_model(model, dataset, config, device):
     """Train GPT-2 and save the checkpoint with the best validation loss."""
     total = len(dataset)
     if total < 10:
-        raise ValueError("At least 10 reviews are required for train/validation/test splits.")
+        raise ValueError("At least 10 reviews are required for training and validation.")
 
+    # Preserve the original training/validation sample counts (400/50 when
+    # available). The remaining examples are not a held-out test partition.
     if total >= 500:
-        train_size, validation_size, test_size = 400, 50, total - 450
+        train_size, validation_size = 400, 50
     else:
         train_size = int(total * 0.8)
-        validation_size = int(total * 0.1)
-        test_size = total - train_size - validation_size
+        validation_size = max(1, int(total * 0.1))
 
     generator = torch.Generator().manual_seed(config["seed"])
-    train_data, validation_data, test_data = random_split(
-        dataset,
-        [train_size, validation_size, test_size],
-        generator=generator,
+    indices = torch.randperm(total, generator=generator).tolist()
+    train_data = Subset(dataset, indices[:train_size])
+    validation_data = Subset(
+        dataset, indices[train_size:train_size + validation_size]
     )
 
     train_loader = DataLoader(
@@ -89,7 +90,7 @@ def train_model(model, dataset, config, device):
         validation_ppls,
         config["output_dir"],
     )
-    return checkpoint_path, test_data
+    return checkpoint_path
 
 
 def save_training_plot(train_losses, validation_ppls, output_dir):
