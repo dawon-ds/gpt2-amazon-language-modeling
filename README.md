@@ -22,13 +22,13 @@ The task is causal language modeling: predicting the next token in review text. 
 
 ### Data Split
 
-For datasets with at least 500 reviews, the training function assigns **400 reviews to training**, **50 to validation**, and the remainder to a third partition. Smaller datasets use approximately 80% training and 10% validation, with the remainder reserved. Split randomness is controlled by the configuration seed.
+For datasets with at least 500 reviews, the training function samples **400 reviews for training** and **50 for validation**. Smaller datasets use approximately 80% for training and 10% for validation. The remaining reviews are not set aside as an independent test set. Random sampling is controlled by the configuration seed.
 
-The updated training function returns the reserved **test partition**. After restoring the best validation checkpoint, `main.py` evaluates only that held-out partition with token-weighted cross-entropy and reports test PPL. At least 10 non-empty reviews are required.
+After restoring the best validation checkpoint, `main.py` calculates PPL on the **full input dataset**, including training and validation reviews, matching the original assignment's overall evaluation scope. This metric is **not independent test performance**. At least 10 non-empty reviews are required.
 
 ## Results
 
-| Setting | Learning Rate | Maximum Epochs | Max Length | Training Time | Reported full-data PPL |
+| Setting | Learning Rate | Maximum Epochs | Max Length | Training Time | Original assignment PPL |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | #1 | 3e-5 | 10 | 256 | 72.35 min | 3.1366 |
 | #2 | 2e-5 | 15 | 512 | 133.61 min | **1.8683** |
@@ -38,7 +38,7 @@ Batch size is **4** across configurations. The assignment settings specify **100
 
 ### Interpretation
 
-**Evaluation caveat:** the table contains historical, full-dataset PPL values from the original assignment; they are **not held-out test PPL** and cannot be directly compared with results from the corrected pipeline.
+**Evaluation note:** the table shows PPL values reported in the original assignment, evaluated on the full dataset. These values do not represent independent test performance and have not been reproduced by rerunning the current repository code.
 
 Setting #2 has the lowest reported PPL and the longest training time, while Setting #3 is fastest and has the highest reported PPL. This comparison illustrates the observed tradeoff across the submitted configurations.
 
@@ -84,19 +84,19 @@ For Setting #2, outputs are written to `outputs/setting2/`:
 
 ## Limitations
 
-- The corrected code masks padding labels, evaluates the held-out test partition, and weights evaluation loss by valid target-token count. The historical results above were obtained before these changes and have not been reproduced.
+- The current code evaluates the full dataset rather than a separate test split. The existing padding-label masking and token-weighted evaluation may differ from the original assignment implementation, so reproducing historical PPL requires the original environment and a rerun.
 - Warmup is configured but not applied in the training loop.
 - Datasets with fewer than 10 reviews are rejected. Very short individual reviews may not contain enough next-token targets for meaningful perplexity.
 
-The updated evaluation improves metric validity, but a controlled comparison still requires documenting the corpus, random seeds, software environment, and newly reproduced scores.
+For a reproducible comparison, the original review corpus, random seeds, software environment, and newly measured scores need to be documented.
 
 ## Review
 
-This project provided practice with generative language modeling, experiment configuration, validation monitoring, and checkpoint selection. It also highlights why token masking and evaluation partitions matter when comparing perplexity across configurations.
+This project provided practice with generative language modeling, experiment configuration, validation monitoring, and checkpoint selection. The reported results compare the original training configurations using full-dataset PPL and training time.
 
 ## Data and Third-party Resources
 
 - **Dataset:** the assignment's Amazon review corpus is not bundled; original provider access and redistribution terms apply.
-- **Model:** pretrained GPT-2 is downloaded from its publisher. Displayed PPL values are historical assignment results, not scores produced by the corrected held-out evaluator.
+- **Model:** pretrained GPT-2 is downloaded from its publisher. Displayed PPL values are historical assignment results and have not been rerun with the current code.
 
 Dependency lists are in `requirements.txt`; unless versions are explicitly pinned there, they do not reproduce an exact historical software environment. No redistribution permission for third-party inputs is implied by this repository.
