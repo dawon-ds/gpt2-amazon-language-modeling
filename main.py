@@ -38,13 +38,13 @@ def main():
     )
 
     model = GPT2LMHeadModel.from_pretrained(config["model_name"]).to(device)
-    checkpoint_path, test_dataset = train_model(model, dataset, config, device)
+    checkpoint_path = train_model(model, dataset, config, device)
 
     model.load_state_dict(torch.load(checkpoint_path, map_location=device))
-    metrics = evaluate(model, test_dataset, config["batch_size"], device)
+    metrics = evaluate(model, dataset, config["batch_size"], device)
 
-    print(f"Held-out test loss: {metrics['loss']:.4f}")
-    print(f"Held-out test perplexity: {metrics['perplexity']:.4f}")
+    print(f"Full-dataset evaluation loss: {metrics['loss']:.4f}")
+    print(f"Full-dataset perplexity: {metrics['perplexity']:.4f}")
 
 
 if __name__ == "__main__":
