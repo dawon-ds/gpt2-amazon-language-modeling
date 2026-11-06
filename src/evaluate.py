@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 
 
 def evaluate(model, dataset, batch_size, device):
-    """Return token-weighted causal LM loss and perplexity on the given split."""
+    """Return token-weighted causal LM loss and perplexity for a dataset."""
     if len(dataset) == 0:
         raise ValueError("Evaluation dataset must not be empty.")
     loader = DataLoader(dataset, batch_size=batch_size)
